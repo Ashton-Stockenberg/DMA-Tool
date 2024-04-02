@@ -181,7 +181,7 @@ int main(int, char**)
                 }
                 else
                 {
-                    std::vector<byte> bytes = mem->ReadMemory(mem->readLocation, 16);
+                    std::vector<byte> bytes = mem->ReadMemory(mem->readLocation, 256);
 
                     std::stringstream stream; 
                     stream << std::hex << mem->readLocation;
@@ -191,9 +191,10 @@ int main(int, char**)
 
                     ImGui::BeginChild("Memory");
                    
-                    for (byte b : bytes)
+                    for (int i = 0; i < bytes.size(); i++)
                     {
-                        ImGui::Text(hexStr((unsigned char*)&b, 1).c_str());
+                        if (i % 16 != 0) ImGui::SameLine();
+                        ImGui::Text(hexStr((unsigned char*)&bytes[i], 1).c_str());
                     }
 
                     ImGui::EndChild();
