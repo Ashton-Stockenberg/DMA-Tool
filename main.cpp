@@ -68,6 +68,9 @@ int main(int, char**)
     bool show_module_viewer = false;
     bool show_memory_viewer = false;
 
+    bool show_test_gui = false;
+
+
     char* processSearch = (char*)malloc(MAX_PATH);
     ZeroMemory(processSearch, MAX_PATH);
     char* moduleSearch = (char*)malloc(MAX_PATH);
@@ -111,9 +114,16 @@ int main(int, char**)
             ImGui::Checkbox("Process Viewer", &show_process_viewer_window);
             ImGui::Checkbox("Module Viewer", &show_module_viewer);
             ImGui::Checkbox("Memory Viewer", &show_memory_viewer);
+            ImGui::Checkbox("Test Gui", &show_test_gui);
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
+
+            if (show_test_gui)
+            {
+                ImGui::Begin("Test Gui");
+                ImGui::End();
+            }
 
             if (show_process_viewer_window)
             {
@@ -121,7 +131,7 @@ int main(int, char**)
 
                 ImGui::InputText("Search", processSearch, MAX_PATH);
 
-                ImGui::BeginChild("Processes");
+                ImGui::BeginChild("Processes", { 0,0 }, ImGuiChildFlags_Border);
                 
                 std::vector<proc> procs = mem->GetProcs();
                 for (proc p : procs)
@@ -162,7 +172,7 @@ int main(int, char**)
 
                         ImGui::InputText("Search", moduleSearch, MAX_PATH);
 
-                        ImGui::BeginChild("Module");
+                        ImGui::BeginChild("Module", { 0,0 }, ImGuiChildFlags_Border);
                         for (procModule m : mods)
                         {
                             if (std::string(m.name).find(moduleSearch) != std::string::npos)
@@ -198,7 +208,10 @@ int main(int, char**)
 
                     ImGui::Text(result.c_str());
 
-                    ImGui::BeginChild("Memory");
+                    ImGui::BeginTable("table", 2);
+
+                    ImGui::TableNextColumn();
+                    ImGui::BeginChild("Memory", { 0,0 }, ImGuiChildFlags_Border);
                     for (int i = 0; i < bytes.size(); i++)
                     {
                         if (i % 16 != 0) ImGui::SameLine();
@@ -206,14 +219,18 @@ int main(int, char**)
                     }
                     ImGui::EndChild();
 
-                    ImGui::BeginChild("Strings");
+                    ImGui::TableNextColumn();
+                    ImGui::BeginChild("Strings", { 0,0 }, ImGuiChildFlags_Border);
                     for (int i = 0; i < bytes.size(); i++)
                     {
                         if (i % 16 != 0) ImGui::SameLine();
                         char c = bytes[i];
+                        if (c < 32 || c > 126) c = '.';
                         ImGui::Text((std::string("")+ c).c_str());
                     }
                     ImGui::EndChild();
+
+                    ImGui::EndTable();
                 }
 
                 ImGui::End();
