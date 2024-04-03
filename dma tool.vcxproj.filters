@@ -16,6 +16,9 @@
     <Filter Include="ImGui">
       <UniqueIdentifier>{95eddbac-dfc3-4014-ad3a-4283f231badf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{18b05674-9f70-4c4f-b44b-75b473761766}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -37,13 +40,13 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Memory.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Memory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,7 +75,7 @@
       <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Memory.h">
-      <Filter>Header Files</Filter>
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

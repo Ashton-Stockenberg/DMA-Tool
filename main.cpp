@@ -64,10 +64,14 @@ int main(int, char**)
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
     // Our state
-    bool show_demo_window = false;
     bool show_process_viewer_window = false;
     bool show_module_viewer = false;
     bool show_memory_viewer = false;
+
+    char* processSearch = (char*)malloc(MAX_PATH);
+    ZeroMemory(processSearch, MAX_PATH);
+    char* moduleSearch = (char*)malloc(MAX_PATH);
+    ZeroMemory(moduleSearch, MAX_PATH);
 
     // Main loop
     bool done = false;
@@ -101,13 +105,9 @@ int main(int, char**)
         ImGui::NewFrame();
 
         // Drawing Logic
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
         {
             ImGui::Begin("DMA Tool");
 
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Process Viewer", &show_process_viewer_window);
             ImGui::Checkbox("Module Viewer", &show_module_viewer);
             ImGui::Checkbox("Memory Viewer", &show_memory_viewer);
@@ -119,14 +119,19 @@ int main(int, char**)
             {
                 ImGui::Begin("Process Viewer");
 
+                ImGui::InputText("Search", processSearch, MAX_PATH);
+
                 ImGui::BeginChild("Processes");
                 
                 std::vector<proc> procs = mem->GetProcs();
                 for (proc p : procs)
                 {
-                    if (ImGui::Button(p.name))
+                    if (std::string(p.name).find(processSearch) != std::string::npos)
                     {
-                        mem->OpenProc(p);
+                        if (ImGui::Button(p.name))
+                        {
+                            mem->OpenProc(p);
+                        }
                     }
                 }
 
@@ -155,12 +160,17 @@ int main(int, char**)
                     {
                         ImGui::Text(mem->currentProc.name);
 
+                        ImGui::InputText("Search", moduleSearch, MAX_PATH);
+
                         ImGui::BeginChild("Module");
                         for (procModule m : mods)
                         {
-                            if (ImGui::Button(m.name))
+                            if (std::string(m.name).find(moduleSearch) != std::string::npos)
                             {
-                                mem->readLocation = m.address;
+                                if (ImGui::Button(m.name))
+                                {
+                                    mem->readLocation = m.address;
+                                }
                             }
                         }
 
@@ -182,7 +192,6 @@ int main(int, char**)
                 else
                 {
                     std::vector<byte> bytes = mem->ReadMemory(mem->readLocation, 256);
-
                     std::stringstream stream; 
                     stream << std::hex << mem->readLocation;
                     std::string result(stream.str());
@@ -190,13 +199,20 @@ int main(int, char**)
                     ImGui::Text(result.c_str());
 
                     ImGui::BeginChild("Memory");
-                   
                     for (int i = 0; i < bytes.size(); i++)
                     {
                         if (i % 16 != 0) ImGui::SameLine();
                         ImGui::Text(hexStr((unsigned char*)&bytes[i], 1).c_str());
                     }
+                    ImGui::EndChild();
 
+                    ImGui::BeginChild("Strings");
+                    for (int i = 0; i < bytes.size(); i++)
+                    {
+                        if (i % 16 != 0) ImGui::SameLine();
+                        char c = bytes[i];
+                        ImGui::Text((std::string("")+ c).c_str());
+                    }
                     ImGui::EndChild();
                 }
 
