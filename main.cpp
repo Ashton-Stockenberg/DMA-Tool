@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <dwmapi.h>
 #include "Memory.h"
 
 // Data
@@ -33,9 +34,13 @@ int main(int, char**)
     }
 
     // Create application window
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"DMA Tool", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_HREDRAW | CS_VREDRAW, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"DMA Tool", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"DMA Tool", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowExW(WS_EX_TOPMOST | WS_EX_LAYERED, wc.lpszClassName, L"DMA Tool", WS_POPUP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), nullptr, nullptr, wc.hInstance, nullptr);
+    SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), BYTE(255), LWA_ALPHA);
+   
+    MARGINS margins = { -1 };
+    DwmExtendFrameIntoClientArea(hwnd, &margins);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -64,6 +69,7 @@ int main(int, char**)
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
     // Our state
+    bool drawState = true;
     bool show_process_viewer_window = false;
     bool show_module_viewer = false;
     bool show_memory_viewer = false;
@@ -106,9 +112,28 @@ int main(int, char**)
         ImGui_ImplDX9_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
+       
+        // Input Logic
+        {
+            LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+
+            if (GetAsyncKeyState(VK_INSERT) & 1)
+            {
+                if (drawState)
+                {
+                    SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle |= WS_EX_TRANSPARENT);
+                }
+                else
+                {
+                    SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle &= ~WS_EX_TRANSPARENT);
+                }
+
+                drawState = !drawState;
+            }
+        }
 
         // Drawing Logic
-        {
+        if (drawState){
             ImGui::Begin("DMA Tool");
 
             ImGui::Checkbox("Process Viewer", &show_process_viewer_window);
@@ -242,7 +267,7 @@ int main(int, char**)
         g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA(40, 80, 150, 0);
+        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA(0, 0, 0, 0);
         g_pd3dDevice->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
         if (g_pd3dDevice->BeginScene() >= 0)
         {
@@ -279,7 +304,7 @@ bool CreateDeviceD3D(HWND hWnd)
     ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
     g_d3dpp.Windowed = TRUE;
     g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    g_d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
     g_d3dpp.EnableAutoDepthStencil = TRUE;
     g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
     g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;           // Present with vsync
