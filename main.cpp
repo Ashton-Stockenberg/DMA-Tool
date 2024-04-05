@@ -3,9 +3,14 @@
 #include "ImGui/imgui_impl_win32.h"
 #include <d3d9.h>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
-#include "Memory.h"
+#include <dwmapi.h>
+
+#include "Memory/Memory.h"
+#include "Features/Feature.h"
+#include "handler.h"
+#include "Features/ProcessViewer.h"
+#include "Features/ModuleViewer.h"
+#include "Features/MemoryViewer.h"
 
 // Data
 static LPDIRECT3D9              g_pD3D = nullptr;
@@ -17,25 +22,29 @@ static D3DPRESENT_PARAMETERS    g_d3dpp = {};
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void ResetDevice();
-std::string hexStr(unsigned char* data, int len);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-const Memory* mem;
 
 // Main code
 int main(int, char**)
 {
-    if (!mem->Init()) 
+    if (!Memory::Init()) 
     {
         std::cout << "Failed to initalize memory device!\n";
 
         return EXIT_FAILURE;
     }
 
+    const int width = GetSystemMetrics(SM_CXSCREEN);
+    const int height = GetSystemMetrics(SM_CYSCREEN);
+
     // Create application window
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"DMA Tool", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_HREDRAW | CS_VREDRAW, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"DMA Tool", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"DMA Tool", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowExW(WS_EX_TOPMOST | WS_EX_LAYERED, wc.lpszClassName, L"DMA Tool", WS_POPUP, 0, 0, width, height, nullptr, nullptr, wc.hInstance, nullptr);
+    SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), BYTE(255), LWA_ALPHA);
+
+    MARGINS margin = { -1 };
+    DwmExtendFrameIntoClientArea(hwnd, &margin);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -64,17 +73,12 @@ int main(int, char**)
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
     // Our state
-    bool show_process_viewer_window = false;
-    bool show_module_viewer = false;
-    bool show_memory_viewer = false;
 
-    bool show_test_gui = false;
-
-
-    char* processSearch = (char*)malloc(MAX_PATH);
-    ZeroMemory(processSearch, MAX_PATH);
-    char* moduleSearch = (char*)malloc(MAX_PATH);
-    ZeroMemory(moduleSearch, MAX_PATH);
+    bool draw = true;
+    
+    handler::add_feature(new ProcessViewer);
+    handler::add_feature(new ModuleViewer);
+    handler::add_feature(new MemoryViewer);
 
     // Main loop
     bool done = false;
@@ -107,134 +111,34 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // Drawing Logic
+        if (GetAsyncKeyState(VK_INSERT) & 1)
         {
+            LONG_PTR styles = GetWindowLongPtrA(hwnd, GWL_EXSTYLE);
+
+            if (draw)
+            {
+                SetWindowLongPtrA(hwnd, GWL_EXSTYLE, styles |= WS_EX_TRANSPARENT);
+            }
+            else
+            {
+                SetWindowLongPtrA(hwnd, GWL_EXSTYLE, styles &= ~WS_EX_TRANSPARENT);
+            }
+            draw = !draw;
+        }
+
+        // Drawing Logic
+        if(draw) {
+            handler::draw();
+            
             ImGui::Begin("DMA Tool");
 
-            ImGui::Checkbox("Process Viewer", &show_process_viewer_window);
-            ImGui::Checkbox("Module Viewer", &show_module_viewer);
-            ImGui::Checkbox("Memory Viewer", &show_memory_viewer);
-            ImGui::Checkbox("Test Gui", &show_test_gui);
+            for (auto f : handler::features)
+            {
+                ImGui::Checkbox(f->name.c_str(), &f->draw);
+            }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
-
-            if (show_test_gui)
-            {
-                ImGui::Begin("Test Gui");
-                ImGui::End();
-            }
-
-            if (show_process_viewer_window)
-            {
-                ImGui::Begin("Process Viewer");
-
-                ImGui::InputText("Search", processSearch, MAX_PATH);
-
-                ImGui::BeginChild("Processes", { 0,0 }, ImGuiChildFlags_Border);
-                
-                std::vector<proc> procs = mem->GetProcs();
-                for (proc p : procs)
-                {
-                    if (std::string(p.name).find(processSearch) != std::string::npos)
-                    {
-                        if (ImGui::Button(p.name))
-                        {
-                            mem->OpenProc(p);
-                        }
-                    }
-                }
-
-                ImGui::EndChild();
-
-                ImGui::End();
-            }
-
-            if (show_module_viewer)
-            {
-                ImGui::Begin("Module Viewer");
-
-                if (mem->currentProc.pid == 0)
-                {
-                    ImGui::Text("Select a process to view its modules");
-                }
-                else
-                {
-                    std::vector<procModule> mods = mem->GetMods();
-
-                    if (mods.size() == 0)
-                    {
-                        ImGui::Text("Cannot get modules!");
-                    }
-                    else
-                    {
-                        ImGui::Text(mem->currentProc.name);
-
-                        ImGui::InputText("Search", moduleSearch, MAX_PATH);
-
-                        ImGui::BeginChild("Module", { 0,0 }, ImGuiChildFlags_Border);
-                        for (procModule m : mods)
-                        {
-                            if (std::string(m.name).find(moduleSearch) != std::string::npos)
-                            {
-                                if (ImGui::Button(m.name))
-                                {
-                                    mem->readLocation = m.address;
-                                }
-                            }
-                        }
-
-                        ImGui::EndChild();
-                    }
-                }
-
-                ImGui::End();
-            }
-
-            if (show_memory_viewer)
-            {
-                ImGui::Begin("Memory Viewer");
-
-                if (mem->currentProc.pid == 0)
-                {
-                    ImGui::Text("Select a process to view its memory");
-                }
-                else
-                {
-                    std::vector<byte> bytes = mem->ReadMemory(mem->readLocation, 256);
-                    std::stringstream stream; 
-                    stream << std::hex << mem->readLocation;
-                    std::string result(stream.str());
-
-                    ImGui::Text(result.c_str());
-
-                    ImGui::BeginTable("table", 2);
-
-                    ImGui::TableNextColumn();
-                    ImGui::BeginChild("Memory", { 0,0 }, ImGuiChildFlags_Border);
-                    for (int i = 0; i < bytes.size(); i++)
-                    {
-                        if (i % 16 != 0) ImGui::SameLine();
-                        ImGui::Text(hexStr((unsigned char*)&bytes[i], 1).c_str());
-                    }
-                    ImGui::EndChild();
-
-                    ImGui::TableNextColumn();
-                    ImGui::BeginChild("Strings", { 0,0 }, ImGuiChildFlags_Border);
-                    for (int i = 0; i < bytes.size(); i++)
-                    {
-                        if (i % 16 != 0) ImGui::SameLine();
-                        char c = bytes[i];
-                        if (c < 32 || c > 126) c = '.';
-                        ImGui::Text((std::string("")+ c).c_str());
-                    }
-                    ImGui::EndChild();
-
-                    ImGui::EndTable();
-                }
-
-                ImGui::End();
-            }
         }
 
         // Rendering
@@ -242,7 +146,7 @@ int main(int, char**)
         g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA(40, 80, 150, 0);
+        D3DCOLOR clear_col_dx = D3DCOLOR_RGBA(0, 0, 0, 0);
         g_pd3dDevice->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
         if (g_pd3dDevice->BeginScene() >= 0)
         {
@@ -279,7 +183,7 @@ bool CreateDeviceD3D(HWND hWnd)
     ZeroMemory(&g_d3dpp, sizeof(g_d3dpp));
     g_d3dpp.Windowed = TRUE;
     g_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    g_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN; // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+    g_d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
     g_d3dpp.EnableAutoDepthStencil = TRUE;
     g_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
     g_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;           // Present with vsync
@@ -304,16 +208,6 @@ void ResetDevice()
         IM_ASSERT(0);
     ImGui_ImplDX9_CreateDeviceObjects();
 }
-
-std::string hexStr(unsigned char* data, int len)
-{
-    std::stringstream ss;
-    ss << std::hex;
-    for (int i = 0; i < len; ++i)
-        ss << std::setw(2) << std::setfill('0') << (int)data[i];
-    return ss.str();
-}
-
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

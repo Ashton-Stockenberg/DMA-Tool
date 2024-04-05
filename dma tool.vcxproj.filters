@@ -19,6 +19,12 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{18b05674-9f70-4c4f-b44b-75b473761766}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Features">
+      <UniqueIdentifier>{35c90e7b-3e42-4f93-a811-79e5522b469a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Features\Base">
+      <UniqueIdentifier>{b110287a-dfa4-4002-950e-8d94c843ef90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,8 +51,23 @@
     <ClCompile Include="ImGui\imgui_demo.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="Memory\Memory.cpp">
       <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Features\Feature.cpp">
+      <Filter>Features\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Features\ProcessViewer.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Features\ModuleViewer.cpp">
+      <Filter>Features</Filter>
+    </ClCompile>
+    <ClCompile Include="Features\MemoryViewer.cpp">
+      <Filter>Features</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,8 +95,23 @@
     <ClInclude Include="ImGui\imstb_truetype.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
+    <ClInclude Include="Memory\Memory.h">
       <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Features\Feature.h">
+      <Filter>Features\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Features\ProcessViewer.h">
+      <Filter>Features</Filter>
+    </ClInclude>
+    <ClInclude Include="handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Features\ModuleViewer.h">
+      <Filter>Features</Filter>
+    </ClInclude>
+    <ClInclude Include="Features\MemoryViewer.h">
+      <Filter>Features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
