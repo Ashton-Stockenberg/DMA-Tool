@@ -1,5 +1,4 @@
-//#define USING_DMA;
-
+#define USING_DMA
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx9.h"
 #include "ImGui/imgui_impl_win32.h"
@@ -77,10 +76,6 @@ int main(int, char **)
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
     // Our state
-    bool show_process_viewer_window = false;
-    bool show_module_viewer = false;
-    bool show_memory_viewer = false;
-
     bool draw = true;
 
     new ProcessViewer;
@@ -182,7 +177,6 @@ int main(int, char **)
 }
 
 // Helper functions
-
 bool CreateDeviceD3D(HWND hWnd)
 {
     if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == nullptr)
