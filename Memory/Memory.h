@@ -1,10 +1,14 @@
 #pragma once
+
 #include <Windows.h>
 #include <iostream>
 #include <vector>
 #include <TlHelp32.h>
+
+#ifdef USING_DMA
 #include <leechcore.h>
 #include <vmmdll.h>
+#endif
 
 typedef struct proc
 {
@@ -21,7 +25,12 @@ typedef struct procModule
 
 class Memory
 {
+
+#ifdef USING_DMA
 	static VMM_HANDLE hVMM;
+#else
+	static HANDLE hProc;
+#endif
 	static DWORD pid;
 
 public:
