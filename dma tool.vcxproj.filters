@@ -107,5 +107,8 @@
     <ClInclude Include="Features\MemoryViewer.h">
       <Filter>Features</Filter>
     </ClInclude>
+    <ClInclude Include="defines.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

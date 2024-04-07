@@ -1,4 +1,5 @@
 #pragma once
+#include "../defines.h"
 
 #include <Windows.h>
 #include <iostream>
