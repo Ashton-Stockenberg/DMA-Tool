@@ -11,7 +11,6 @@
 
 #include "Memory/Memory.h"
 #include "Features/Feature.h"
-#include "handler.h"
 #include "Features/ProcessViewer.h"
 #include "Features/ModuleViewer.h"
 #include "Features/MemoryViewer.h"
@@ -84,9 +83,9 @@ int main(int, char **)
 
     bool draw = true;
 
-    handler::add_feature(new ProcessViewer);
-    handler::add_feature(new ModuleViewer);
-    handler::add_feature(new MemoryViewer);
+    new ProcessViewer;
+    new ModuleViewer;
+    new MemoryViewer;
 
     // Main loop
     bool done = false;
@@ -138,11 +137,11 @@ int main(int, char **)
         // Drawing Logic
         if (draw)
         {
-            handler::draw();
+            Feature::DrawFeatures();
 
             ImGui::Begin("DMA Tool");
 
-            for (auto f : handler::features)
+            for (auto f : Feature::GetFeatures())
             {
                 ImGui::Checkbox(f->name.c_str(), &f->draw);
             }

@@ -148,7 +148,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Features\Feature.cpp" />
-    <ClCompile Include="handler.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
     <ClCompile Include="ImGui\imgui_draw.cpp" />
@@ -164,7 +163,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Features\Feature.h" />
-    <ClInclude Include="handler.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_dx9.h" />

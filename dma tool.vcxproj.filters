@@ -60,9 +60,6 @@
     <ClCompile Include="Features\ProcessViewer.cpp">
       <Filter>Features</Filter>
     </ClCompile>
-    <ClCompile Include="handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Features\ModuleViewer.cpp">
       <Filter>Features</Filter>
     </ClCompile>
@@ -103,9 +100,6 @@
     </ClInclude>
     <ClInclude Include="Features\ProcessViewer.h">
       <Filter>Features</Filter>
-    </ClInclude>
-    <ClInclude Include="handler.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Features\ModuleViewer.h">
       <Filter>Features</Filter>
