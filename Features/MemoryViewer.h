@@ -1,6 +1,7 @@
 #pragma once
 #include "Feature.h"
 #include <sstream>
+#include <string>
 #include <iomanip>
 
 class MemoryViewer :
@@ -15,4 +16,4 @@ public:
 };
 
 std::string hexStr(unsigned char* data, int len);
-uintptr_t hexNum(char* data);
+uintptr_t hexNum(std::string data);

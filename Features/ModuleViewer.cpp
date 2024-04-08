@@ -41,6 +41,10 @@ void ModuleViewer::Draw()
                     {
                         memoryViewer->currentModule = m;
                         memoryViewer->address = m.address;
+
+                        std::string addyString = hexStr((unsigned char*)&m.address, sizeof(uintptr_t));
+
+                        strcpy_s(memoryViewer->inputBuffer, addyString.c_str());
                     }
                 }
             }

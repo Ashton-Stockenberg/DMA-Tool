@@ -1,5 +1,5 @@
 #pragma once
-//#define USING_DMA
+#define USING_DMA
 
 #include <Windows.h>
 #include <iostream>

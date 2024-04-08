@@ -80,7 +80,7 @@ std::string hexStr(unsigned char *data, int len)
     return ss.str();
 }
 
-uintptr_t hexNum(char* data)
+uintptr_t hexNum(std::string data)
 {
     std::stringstream ss;
     uintptr_t result = 0;
