@@ -48,7 +48,7 @@ std::vector<procModule> Memory::GetMods()
     std::vector<procModule> mods;
 #ifdef USING_DMA
     PVMMDLL_MAP_MODULE pModuleMap = NULL;
-    VMMDLL_Map_GetModuleU(hVMM, pid, &pModuleMap, 0);
+    VMMDLL_Map_GetModuleU(hVMM, currentProc.pid, &pModuleMap, 0);
 
     for (int i = 0; i < pModuleMap->cMap; i++)
     {
@@ -129,7 +129,7 @@ std::vector<byte> Memory::ReadMemory(uintptr_t address, DWORD size)
     std::vector<byte> bytes;
     bytes.resize(size);
 #ifdef USING_DMA
-    VMMDLL_MemReadEx(hVMM, pid, address, bytes.data(), size, 0, VMMDLL_FLAG_NOCACHE);
+    VMMDLL_MemReadEx(hVMM, currentProc.pid, address, bytes.data(), size, 0, VMMDLL_FLAG_NOCACHE);
 #else
     ReadProcessMemory(hProc, (LPCVOID)address, bytes.data(), size, nullptr);
 #endif

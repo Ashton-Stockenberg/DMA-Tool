@@ -4,7 +4,6 @@ MemoryViewer::MemoryViewer()
 {
     name = "Memory Viewer";
     ZeroMemory(inputBuffer, 256);
-    std::cout << std::hex << &inputBuffer;
 }
 
 void MemoryViewer::Draw()
