@@ -78,8 +78,8 @@ int main(int, char **)
     bool draw = true;
 
     new ProcessViewer;
-    new ModuleViewer;
-    new MemoryViewer;
+    MemoryViewer memViewer;
+    new ModuleViewer(&memViewer);
 
     // Main loop
     bool done = false;

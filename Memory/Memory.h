@@ -1,5 +1,5 @@
 #pragma once
-#define USING_DMA
+//#define USING_DMA
 
 #include <Windows.h>
 #include <iostream>
@@ -32,12 +32,9 @@ class Memory
 #else
 	static HANDLE hProc;
 #endif
-	static DWORD pid;
 
 public:
 	static proc currentProc;
-	static procModule currentMod;
-	static uintptr_t readLocation;
 	static bool Init();
 	static void Exit();
 	static bool OpenProc(proc p);

@@ -3,6 +3,8 @@
 MemoryViewer::MemoryViewer()
 {
     name = "Memory Viewer";
+    ZeroMemory(inputBuffer, 256);
+    std::cout << std::hex << &inputBuffer;
 }
 
 void MemoryViewer::Draw()
@@ -15,12 +17,16 @@ void MemoryViewer::Draw()
     }
     else
     {
-        std::vector<byte> bytes = Memory::ReadMemory(Memory::readLocation, 256);
+        std::vector<byte> bytes = Memory::ReadMemory(address, 256);
         std::stringstream stream;
-        stream << std::hex << Memory::readLocation;
+        stream << std::hex << address;
         std::string result(stream.str());
 
-        ImGui::Text((Memory::currentMod.name + " [" + result + "]").c_str());
+        ImGui::Text((currentModule.name + " [" + result + "]").c_str());
+        if (ImGui::InputText("GoTo", inputBuffer, 256, ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            address = hexNum(inputBuffer);
+        }
 
         ImGui::BeginTable("table", 2);
 
@@ -48,6 +54,18 @@ void MemoryViewer::Draw()
         ImGui::EndChild();
 
         ImGui::EndTable();
+
+        if (ImGui::Button("<"))
+        {
+            address -= 16;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button(">"))
+        {
+            address += 16;
+        }
     }
 
     ImGui::End();
@@ -60,4 +78,15 @@ std::string hexStr(unsigned char *data, int len)
     for (int i = 0; i < len; ++i)
         ss << std::setw(2) << std::setfill('0') << (int)data[i];
     return ss.str();
+}
+
+uintptr_t hexNum(char* data)
+{
+    std::stringstream ss;
+    uintptr_t result = 0;
+    
+    ss << std::hex << data;
+    ss >> result;
+
+    return result;
 }

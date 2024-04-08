@@ -6,10 +6,13 @@
 class MemoryViewer :
     public Feature
 {
-
 public:
+    char inputBuffer[256];
+    procModule currentModule = {};
+    uintptr_t address = 0;
     MemoryViewer();
     void Draw();
 };
 
 std::string hexStr(unsigned char* data, int len);
+uintptr_t hexNum(char* data);

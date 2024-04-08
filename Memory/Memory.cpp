@@ -5,10 +5,7 @@ VMM_HANDLE Memory::hVMM;
 #else
 HANDLE Memory::hProc;
 #endif
-DWORD Memory::pid;
 proc Memory::currentProc{};
-procModule Memory::currentMod{};
-uintptr_t Memory::readLocation;
 
 bool Memory::Init()
 {
@@ -33,13 +30,7 @@ void Memory::Exit()
 
 bool Memory::OpenProc(proc p)
 {
-#ifdef USING_DMA
-    if (!VMMDLL_PidGetFromName(hVMM, (LPSTR)p.name.c_str(), &pid))
-    {
-        std::cout << "Failed to get pid!" << std::endl;
-        return false;
-    }
-#else
+#ifndef USING_DMA
     HANDLE temp = OpenProcess(PROCESS_ALL_ACCESS, NULL, p.pid);
     if (temp == INVALID_HANDLE_VALUE)
     {
@@ -47,7 +38,6 @@ bool Memory::OpenProc(proc p)
     }
     hProc = temp;
 #endif
-
     currentProc = p;
 
     return true;

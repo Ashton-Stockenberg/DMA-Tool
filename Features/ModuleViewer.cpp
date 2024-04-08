@@ -1,10 +1,12 @@
 #include "ModuleViewer.h"
 
-ModuleViewer::ModuleViewer()
+ModuleViewer::ModuleViewer(MemoryViewer* memViewer)
+    :
+    memoryViewer(memViewer)
 {
     name = "Module Viewer";
-
-    moduleSearch = (char *)malloc(MAX_PATH);
+    
+    moduleSearch = (char*)malloc(MAX_PATH);
     ZeroMemory(moduleSearch, MAX_PATH);
 }
 
@@ -37,8 +39,8 @@ void ModuleViewer::Draw()
                 {
                     if (ImGui::Button(m.name.c_str()))
                     {
-                        Memory::currentMod = m;
-                        Memory::readLocation = m.address;
+                        memoryViewer->currentModule = m;
+                        memoryViewer->address = m.address;
                     }
                 }
             }
